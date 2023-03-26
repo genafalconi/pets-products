@@ -5,21 +5,19 @@ import { ProductsService } from './products.service';
 
 @Controller('products')
 export class ProductsController {
-
   constructor(
     @Inject(ProductsService)
-    private readonly productsService: ProductsService
-  ) { }
+    private readonly productsService: ProductsService,
+  ) {}
 
   @UseGuards(FirebaseAuthGuard)
   @Post('/')
   async createProductsFromExcel(): Promise<void> {
-    return await this.productsService.createProduct()
+    return await this.productsService.createProduct();
   }
 
   @Get('/active')
   async getActiveProducts(): Promise<DocumentData> {
-    return await this.productsService.getActiveProducts()
+    return await this.productsService.getActiveProducts();
   }
-
 }

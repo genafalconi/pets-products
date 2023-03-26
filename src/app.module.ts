@@ -6,10 +6,10 @@ import { SubproductsModule } from './subproducts/subproducts.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: `env/${process.env.NODE_ENV || 'dev'}.env`
+      envFilePath: `env/${process.env.NODE_ENV || 'dev'}.env`,
     }),
     ProductsModule,
-    SubproductsModule
+    SubproductsModule,
   ],
   controllers: [],
   providers: [],

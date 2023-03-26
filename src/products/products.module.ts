@@ -4,10 +4,8 @@ import { ProductsController } from './products.controller';
 import { SubproductsModule } from 'src/subproducts/subproducts.module';
 
 @Module({
-  imports: [
-    SubproductsModule
-  ],
+  imports: [SubproductsModule],
   providers: [ProductsService],
-  controllers: [ProductsController]
+  controllers: [ProductsController],
 })
 export class ProductsModule {}
