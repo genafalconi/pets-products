@@ -8,28 +8,30 @@ import { Lock } from '../schemas/lock.schema';
 export class SubproductsService {
   constructor(
     @InjectModel(Lock.name)
-    private readonly lockModel: Model<Lock>
-  ) { }
+    private readonly lockModel: Model<Lock>,
+  ) {}
 
   async lockSubprods(lockData: LockDto): Promise<Lock[]> {
-    const locksSaved: Array<any> = []
+    const locksSaved: Array<any> = [];
 
-    for (let subprod of lockData.subproducts) {
-      console.log(lockData.user, subprod.subprod)
-      const existingLock = await this.lockModel.findOne({
-        user: new Types.ObjectId(lockData.user),
-        subproduct: new Types.ObjectId(subprod.subprod)
-      }).exec();
+    for (const subprod of lockData.subproducts) {
+      console.log(lockData.user, subprod.subprod);
+      const existingLock = await this.lockModel
+        .findOne({
+          user: new Types.ObjectId(lockData.user),
+          subproduct: new Types.ObjectId(subprod.subprod),
+        })
+        .exec();
 
       if (!existingLock) {
         const lockToSave = new this.lockModel({
           user: lockData.user,
           subproduct: new Types.ObjectId(subprod.subprod),
-          quantity: subprod.quantity
+          quantity: subprod.quantity,
         });
 
         const lockSaved: Lock = await lockToSave.save();
-        locksSaved.push(lockSaved)
+        locksSaved.push(lockSaved);
       }
     }
 
@@ -42,8 +44,8 @@ export class SubproductsService {
       }
     }, 600000); // 10 minutos
 
-    Logger.log('Locks saved', locksSaved)
-    return locksSaved
+    Logger.log('Locks saved', locksSaved);
+    return locksSaved;
   }
 
   async removeLockUser(user: string): Promise<Lock[]> {

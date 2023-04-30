@@ -19,7 +19,7 @@ export class SubproductsController {
   constructor(
     @Inject(SubproductsService)
     private readonly subproductsService: SubproductsService,
-  ) { }
+  ) {}
 
   @Post('/lock')
   async lockSubprods(@Body() dataLockSubprods: LockDto): Promise<DocumentData> {
@@ -27,7 +27,9 @@ export class SubproductsController {
   }
 
   @Delete('/lock/:idUser')
-  async deleteLockSubprods(@Param('idUser') user: string): Promise<DocumentData> {
+  async deleteLockSubprods(
+    @Param('idUser') user: string,
+  ): Promise<DocumentData> {
     return await this.subproductsService.removeLockUser(user);
   }
 }
