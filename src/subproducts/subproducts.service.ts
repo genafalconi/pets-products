@@ -1,80 +1,56 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  CollectionReference,
-  DocumentData,
-  QuerySnapshot,
-} from 'firebase-admin/firestore';
-import { firebaseFirestore } from '../firebase/firebase.app';
-import { LockSubprodDto, LockToSave } from 'src/dto/lockSubprod.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
+import { LockDto } from 'src/dto/lock.dto';
+import { Lock } from '../schemas/lock.schema';
 
 @Injectable()
 export class SubproductsService {
-  private locksCollection: CollectionReference;
+  constructor(
+    @InjectModel(Lock.name)
+    private readonly lockModel: Model<Lock>
+  ) { }
 
-  constructor() {
-    this.locksCollection = firebaseFirestore.collection('lock');
-  }
+  async lockSubprods(lockData: LockDto): Promise<Lock[]> {
+    const locksSaved: Array<any> = []
 
-  async lockSubprods(lock: LockSubprodDto): Promise<any> {
-    const lockDoc = await this.locksCollection
-      .where('user', '==', lock.user)
-      .get();
-    const locksSaved: Array<DocumentData> = [];
+    for (let subprod of lockData.subproducts) {
+      console.log(lockData.user, subprod.subprod)
+      const existingLock = await this.lockModel.findOne({
+        user: new Types.ObjectId(lockData.user),
+        subproduct: new Types.ObjectId(subprod.subprod)
+      }).exec();
 
-    const lockPromises = lock.subprods.map(async (subprod) => {
-      const existingLock = lockDoc.docs.find((elem) => {
-        return elem.data().idSubprod === subprod.idSubprod;
-      });
       if (!existingLock) {
-        const lockUser = this.locksCollection.doc();
-        const lockToSave: LockToSave = {
-          user: lock.user,
-          idSubprod: subprod.idSubprod,
-          quantity: subprod.quantity,
-        };
-        await lockUser.set(Object.assign({}, lockToSave));
+        const lockToSave = new this.lockModel({
+          user: lockData.user,
+          subproduct: new Types.ObjectId(subprod.subprod),
+          quantity: subprod.quantity
+        });
 
-        const lockSaved = await lockUser.get();
-        const lockData = lockSaved.data();
-        locksSaved.push({ ...lockData, id: lockSaved.id });
+        const lockSaved: Lock = await lockToSave.save();
+        locksSaved.push(lockSaved)
       }
-    });
-
-    await Promise.all(lockPromises);
+    }
 
     setTimeout(async () => {
-      if (locksSaved) {
-        for (let lock of locksSaved) {
-          const lockDoc = await this.locksCollection.doc(lock.id).get();
-          if (lockDoc) {
-            const lockRef = this.locksCollection.doc(lock.id);
-            await lockRef.delete(lockDoc.data());
-            Logger.log(lockDoc.data(), 'Lock deleted by time exceded');
-          }
+      if (locksSaved.length > 0) {
+        for (const lock of locksSaved) {
+          await this.lockModel.findByIdAndDelete(lock._id);
+          Logger.log(lock, 'Lock deleted by time exceeded');
         }
       }
-    }, 6000)
+    }, 600000); // 10 minutos
 
-    Logger.log(locksSaved, 'Locks saved');
-    return locksSaved;
+    Logger.log('Locks saved', locksSaved)
+    return locksSaved
   }
 
-  async removeLockUser(user: string) {
-    const lockDoc = await this.locksCollection.where('user', '==', user).get();
-    const lockDeleted: Array<DocumentData> = [];
+  async removeLockUser(user: string): Promise<Lock[]> {
+    const locksDeleted = await this.lockModel.find({ user }).exec();
+    await this.lockModel.deleteMany({ user }).exec();
 
-    if (!lockDoc.empty) {
-      lockDoc.docs.map(async (subprod) => {
-        const lockId = subprod.id;
-        const lockData = subprod.data();
-        const lockRef = this.locksCollection.doc(lockId);
-
-        lockDeleted.push(lockData);
-        await lockRef.delete(lockData);
-      });
-
-      Logger.log(lockDeleted, 'Deleted locks');
-      return lockDeleted;
-    }
+    Logger.log(locksDeleted, 'Deleted locks');
+    return locksDeleted;
   }
 }
