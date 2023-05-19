@@ -14,6 +14,9 @@ import { SubproductsModule } from './subproducts/subproducts.module';
         uri: process.env.MONGO_DB,
         useNewUrlParser: true,
         useUnifiedTopology: true,
+        maxPoolSize: 30,
+        retryAttempts: 2,
+        retryDelay: 1000
       }),
     }),
     ProductsModule,
