@@ -9,31 +9,36 @@ export class SubproductsService {
   constructor(
     @InjectModel(Lock.name)
     private readonly lockModel: Model<Lock>,
-  ) {}
+  ) { }
 
   async lockSubprods(lockData: LockDto): Promise<Lock[]> {
-    const locksSaved: Array<any> = [];
+    const locksSaved: Array<Lock> = [];
+    const locksExists: Array<Lock> = [];
 
-    for (const subprod of lockData.subproducts) {
-      console.log(lockData.user, subprod.subprod);
-      const existingLock = await this.lockModel
-        .findOne({
-          user: new Types.ObjectId(lockData.user),
-          subproduct: new Types.ObjectId(subprod.subprod),
-        })
-        .exec();
+    await Promise.all(
+      lockData.subproducts.map(async (subprod) => {
+        const existingLock = await this.lockModel
+          .findOne({
+            user: new Types.ObjectId(lockData.user),
+            subproduct: new Types.ObjectId(subprod.subprod),
+          })
+          .exec();
 
-      if (!existingLock) {
-        const lockToSave = new this.lockModel({
-          user: lockData.user,
-          subproduct: new Types.ObjectId(subprod.subprod),
-          quantity: subprod.quantity,
-        });
+        if (!existingLock) {
+          const lockToSave = new this.lockModel({
+            _id: new Types.ObjectId(),
+            user: lockData.user,
+            subproduct: new Types.ObjectId(subprod.subprod),
+            quantity: subprod.quantity,
+          });
 
-        const lockSaved: Lock = await lockToSave.save();
-        locksSaved.push(lockSaved);
-      }
-    }
+          const lockSaved: Lock = await lockToSave.save();
+          locksSaved.push(lockSaved);
+        } else {
+          locksExists.push(existingLock);
+        }
+      })
+    );
 
     setTimeout(async () => {
       if (locksSaved.length > 0) {
@@ -42,11 +47,13 @@ export class SubproductsService {
           Logger.log(lock, 'Lock deleted by time exceeded');
         }
       }
-    }, 600000); // 10 minutos
+    }, 600000); // 10 minutes
 
     Logger.log('Locks saved', locksSaved);
-    return locksSaved;
+
+    return locksSaved.length === 0 ? locksExists : locksSaved;
   }
+
 
   async removeLockUser(user: string): Promise<Lock[]> {
     const locksDeleted = await this.lockModel.find({ user }).exec();

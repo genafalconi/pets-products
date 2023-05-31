@@ -18,12 +18,12 @@ export class ProductsController {
   constructor(
     @Inject(ProductsService)
     private readonly productsService: ProductsService,
-  ) { }
+  ) {}
 
   @Get('/active')
   async getActiveProducts(
     @Query('page') page: number,
-    @Query('animal') animal?: string
+    @Query('animal') animal?: string,
   ): Promise<ProductPaginationDto> {
     return await this.productsService.getActiveProducts(animal, page);
   }
@@ -42,9 +42,11 @@ export class ProductsController {
   @Get('/search')
   async getSearchProducts(
     @Query('page') page: string,
-    @Query('input') input: string
+    @Query('input') input: string,
   ): Promise<ProductPaginationDto> {
-    return await this.productsService.getProductsByInputSearch(input, parseInt(page));
+    return await this.productsService.getProductsByInputSearch(
+      input,
+      parseInt(page),
+    );
   }
-
 }

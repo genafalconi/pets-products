@@ -14,7 +14,7 @@ export class ProductsService {
     private readonly productModel: Model<Product>,
     @InjectModel(Subproduct.name)
     private readonly subproductModel: Model<Subproduct>,
-  ) { }
+  ) {}
 
   async createTestProd() {
     const prod = {
@@ -33,40 +33,46 @@ export class ProductsService {
     await this.subproductModel.updateMany({}, { $set: { stock: 100 } });
   }
 
-  async getPaginatedProducts(params: any, page: number = 1) {
+  async getPaginatedProducts(params: any, page = 1) {
     const productsPerPage = 20;
     const skip = (page - 1) * productsPerPage;
-    const query = { active: true, ...params }
-    
+    const query = { active: true, ...params };
+
     const [activeProds, totalCount] = await Promise.all([
       this.productModel
         .find(query)
-        .populate(
-          {
-            path: 'subproducts',
-            options: { sort: { size: 1 } },
-            select: '_id sell_price size stock'
-          }
-        )
+        .populate({
+          path: 'subproducts',
+          options: { sort: { size: 1 } },
+          select: '_id sell_price size stock',
+        })
         .sort({ name: 1 })
         .skip(skip)
         .limit(productsPerPage)
         .lean()
         .exec(),
-      this.productModel.countDocuments(query).exec()
-    ]);
+      this.productModel.countDocuments(query).exec(),
+    ]); 
 
     const totalPages = Math.ceil(totalCount / productsPerPage);
 
-    return { subproducts: activeProds, total_products: totalCount, page: page, total_pages: totalPages };
+    return {
+      subproducts: activeProds,
+      total_products: totalCount,
+      page: page,
+      total_pages: totalPages,
+    };
   }
 
-  async getActiveProducts(animal?: string, page: number = 1): Promise<ProductPaginationDto> {
-    let params = null
+  async getActiveProducts(
+    animal?: string,
+    page = 1,
+  ): Promise<ProductPaginationDto> {
+    let params = null;
     if (animal) {
-      params = { animal: animal }
+      params = { animal: animal };
     }
-    return await this.getPaginatedProducts(params, page)
+    return await this.getPaginatedProducts(params, page);
   }
 
   async getSubProductsByProd(idProduct: string) {
@@ -163,7 +169,10 @@ export class ProductsService {
     // https://res.cloudinary.com/<cloud_name>/image/upload/h_150,w_100/olympic_flag
   }
 
-  async getProductsByInputSearch(input: string, page: number = 1) {
-    return await this.getPaginatedProducts({ name: { $regex: input, $options: 'i' } }, page);
+  async getProductsByInputSearch(input: string, page = 1) {
+    return await this.getPaginatedProducts(
+      { name: { $regex: input, $options: 'i' } },
+      page,
+    );
   }
 }
