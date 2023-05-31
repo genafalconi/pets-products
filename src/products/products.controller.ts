@@ -1,7 +1,17 @@
-import { Controller, Get, Inject, Post, UseGuards } from '@nestjs/common';
-import { DocumentData } from 'firebase-admin/firestore';
+import {
+  Controller,
+  Get,
+  Inject,
+  Post,
+  UseGuards,
+  Body,
+  Query,
+} from '@nestjs/common';
+import { FilterDto } from 'src/dto/filter.dto';
 import { FirebaseAuthGuard } from 'src/firebase/firebase.auth.guard';
+import { Product } from 'src/schemas/product.schema';
 import { ProductsService } from './products.service';
+import { ProductPaginationDto, SearchDto } from 'src/dto/productPagination.dto';
 
 @Controller('products')
 export class ProductsController {
@@ -10,14 +20,33 @@ export class ProductsController {
     private readonly productsService: ProductsService,
   ) {}
 
-  @UseGuards(FirebaseAuthGuard)
-  @Post('/')
-  async createProductsFromExcel(): Promise<void> {
-    return await this.productsService.createProduct();
+  @Get('/active')
+  async getActiveProducts(
+    @Query('page') page: number,
+    @Query('animal') animal?: string,
+  ): Promise<ProductPaginationDto> {
+    return await this.productsService.getActiveProducts(animal, page);
   }
 
-  @Get('/active')
-  async getActiveProducts(): Promise<DocumentData> {
-    return await this.productsService.getActiveProducts();
+  @UseGuards(FirebaseAuthGuard)
+  @Post('/new')
+  async createProduct(): Promise<any> {
+    return await this.productsService.createTestProd();
+  }
+
+  @Get('/filter')
+  async getFilterProducts(@Body() filterData: FilterDto): Promise<Product[]> {
+    return await this.productsService.getFilteredProducts(filterData);
+  }
+
+  @Get('/search')
+  async getSearchProducts(
+    @Query('page') page: string,
+    @Query('input') input: string,
+  ): Promise<ProductPaginationDto> {
+    return await this.productsService.getProductsByInputSearch(
+      input,
+      parseInt(page),
+    );
   }
 }
