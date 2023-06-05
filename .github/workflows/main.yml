@@ -24,6 +24,9 @@ jobs:
 
       - name: Authenticate with Firebase
         run: firebase deploy --token "${{ secrets.FIREBASE_TOKEN }}"
+        
+      - name: Use proyect pets zone with firebase
+        run: firebase use petszone-arg
 
       - name: Deploy Cloud Functions
         run: |
