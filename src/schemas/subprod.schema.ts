@@ -45,6 +45,9 @@ export class Subproduct extends Document {
 
   @Prop({ required: false })
   highlight: boolean;
+
+  @Prop({ required: false, default: false })
+  has_lock: boolean;
 }
 
 export const SubproductSchema = SchemaFactory.createForClass(Subproduct);
