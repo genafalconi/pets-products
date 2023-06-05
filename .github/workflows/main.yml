@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install dependencies
         run: npm install -g firebase-tools
@@ -23,10 +23,7 @@ jobs:
         run: echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > $HOME/gcloud.json
 
       - name: Authenticate with Firebase
-        run: firebase deploy --token "${{ secrets.FIREBASE_TOKEN }}"
-        
-      - name: Use proyect pets zone with firebase
-        run: firebase use petszone-arg
+        run: firebase use petszone-arg && firebase deploy --token "${{ secrets.FIREBASE_TOKEN }}"
 
       - name: Deploy Cloud Functions
         run: |
