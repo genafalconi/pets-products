@@ -4,7 +4,6 @@ import { Subproduct } from './subprod.schema';
 
 @Schema({ timestamps: true })
 export class Lock {
-
   @Prop({ required: false })
   _id: Types.ObjectId;
 

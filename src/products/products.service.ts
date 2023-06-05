@@ -6,6 +6,7 @@ import { Product } from '../schemas/product.schema';
 import { Subproduct } from '../schemas/subprod.schema';
 import { FilterDto } from 'src/dto/filter.dto';
 import { ProductPaginationDto } from 'src/dto/productPagination.dto';
+import { Lock } from 'src/schemas/lock.schema';
 
 @Injectable()
 export class ProductsService {
@@ -14,7 +15,9 @@ export class ProductsService {
     private readonly productModel: Model<Product>,
     @InjectModel(Subproduct.name)
     private readonly subproductModel: Model<Subproduct>,
-  ) {}
+    @InjectModel(Lock.name)
+    private readonly lockModel: Model<Lock>
+  ) { }
 
   async createTestProd() {
     const prod = {
@@ -44,15 +47,25 @@ export class ProductsService {
         .populate({
           path: 'subproducts',
           options: { sort: { size: 1 } },
-          select: '_id sell_price size stock',
+          select: '_id sell_price size stock has_lock',
         })
+        .select('_id name subproducts highlight image')
         .sort({ name: 1 })
         .skip(skip)
         .limit(productsPerPage)
         .lean()
         .exec(),
-      this.productModel.countDocuments(query).exec(),
-    ]); 
+      this.productModel.countDocuments(query).exec()
+    ]);
+
+    for (let prod of activeProds) {
+      for (let subprod of prod.subproducts) {
+        if (subprod.has_lock) {
+          const subprodLocked = await this.lockModel.findOne({ subproduct: subprod._id }).lean().exec();
+          subprod.stock -= subprodLocked.quantity;
+        }
+      }
+    }
 
     const totalPages = Math.ceil(totalCount / productsPerPage);
 
