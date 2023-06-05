@@ -23,7 +23,7 @@ jobs:
         run: |
           echo "$FIREBASE_SERVICE_ACCOUNT" > $HOME/gcloud.json
           export GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcloud.json
-          npx firebase login:ci --no-localhost --token "$FIREBASE_TOKEN"
+          npx firebase use petszone-arg --token "$FIREBASE_TOKEN"
 
       - name: Deploy Firebase Functions
         run: npx firebase deploy --only functions
