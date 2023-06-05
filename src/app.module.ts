@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ProductsModule } from './products/products.module';
 import { SubproductsModule } from './subproducts/subproducts.module';
 import { Connection } from 'mongoose';
+import * as AutoMongoose from 'mongoose-autopopulate'
 
 @Module({
   imports: [
@@ -17,11 +18,7 @@ import { Connection } from 'mongoose';
         useUnifiedTopology: true,
         maxPoolSize: 30,
         retryAttempts: 2,
-        retryDelay: 1000,
-        connectionFactory: (connection: Connection) => {
-          connection.plugin(require('mongoose-autopopulate'));
-          return connection;
-        }
+        retryDelay: 1000
       }),
     }),
     ProductsModule,
