@@ -11,7 +11,7 @@ import { FilterDto } from 'src/dto/filter.dto';
 import { FirebaseAuthGuard } from 'src/firebase/firebase.auth.guard';
 import { Product } from 'src/schemas/product.schema';
 import { ProductsService } from './products.service';
-import { ProductPaginationDto, SearchDto } from 'src/dto/productPagination.dto';
+import { ProductPaginationDto } from 'src/dto/productPagination.dto';
 
 @Controller('products')
 export class ProductsController {

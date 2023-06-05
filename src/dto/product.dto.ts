@@ -1,5 +1,3 @@
-import { SubproductDto } from './subproduct.dto';
-
 export class ProductDto {
   name: string;
   category: string;

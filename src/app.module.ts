@@ -3,8 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductsModule } from './products/products.module';
 import { SubproductsModule } from './subproducts/subproducts.module';
-import { Connection } from 'mongoose';
-import * as AutoMongoose from 'mongoose-autopopulate'
 
 @Module({
   imports: [
