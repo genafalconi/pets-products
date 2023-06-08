@@ -26,9 +26,7 @@ export class SubproductsController {
   }
 
   @Delete('/lock/:idUser')
-  async deleteLockSubprods(
-    @Param('idUser') user: string,
-  ): Promise<Lock[]> {
+  async deleteLockSubprods(@Param('idUser') user: string): Promise<Lock[]> {
     return await this.subproductsService.removeLockUser(user);
   }
 }
