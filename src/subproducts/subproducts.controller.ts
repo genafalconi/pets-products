@@ -7,10 +7,10 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { DocumentData } from 'firebase-admin/firestore';
 import { LockDto } from 'src/dto/lock.dto';
 import { FirebaseAuthGuard } from 'src/firebase/firebase.auth.guard';
 import { SubproductsService } from './subproducts.service';
+import { Lock } from 'src/schemas/lock.schema';
 
 @UseGuards(FirebaseAuthGuard)
 @Controller('subproducts')
@@ -21,14 +21,14 @@ export class SubproductsController {
   ) {}
 
   @Post('/lock')
-  async lockSubprods(@Body() dataLockSubprods: LockDto): Promise<DocumentData> {
+  async lockSubprods(@Body() dataLockSubprods: LockDto): Promise<Lock[]> {
     return await this.subproductsService.lockSubprods(dataLockSubprods);
   }
 
   @Delete('/lock/:idUser')
   async deleteLockSubprods(
     @Param('idUser') user: string,
-  ): Promise<DocumentData> {
+  ): Promise<Lock[]> {
     return await this.subproductsService.removeLockUser(user);
   }
 }
