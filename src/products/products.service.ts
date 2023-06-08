@@ -16,8 +16,8 @@ export class ProductsService {
     @InjectModel(Subproduct.name)
     private readonly subproductModel: Model<Subproduct>,
     @InjectModel(Lock.name)
-    private readonly lockModel: Model<Lock>
-  ) { }
+    private readonly lockModel: Model<Lock>,
+  ) {}
 
   async createTestProd() {
     const prod = {
@@ -55,13 +55,16 @@ export class ProductsService {
         .limit(productsPerPage)
         .lean()
         .exec(),
-      this.productModel.countDocuments(query).exec()
+      this.productModel.countDocuments(query).exec(),
     ]);
 
-    for (let prod of activeProds) {
-      for (let subprod of prod.subproducts) {
+    for (const prod of activeProds) {
+      for (const subprod of prod.subproducts) {
         if (subprod.has_lock) {
-          const subprodLocked = await this.lockModel.findOne({ subproduct: subprod._id }).lean().exec();
+          const subprodLocked = await this.lockModel
+            .findOne({ subproduct: subprod._id })
+            .lean()
+            .exec();
           subprod.stock -= subprodLocked.quantity;
         }
       }

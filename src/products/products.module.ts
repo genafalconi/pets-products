@@ -11,7 +11,7 @@ import { Lock, LockSchema } from 'src/schemas/lock.schema';
     MongooseModule.forFeature([
       { name: Product.name, schema: ProductSchema },
       { name: Subproduct.name, schema: SubproductSchema },
-      { name: Lock.name, schema: LockSchema }
+      { name: Lock.name, schema: LockSchema },
     ]),
   ],
   providers: [ProductsService],
