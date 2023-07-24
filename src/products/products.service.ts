@@ -17,7 +17,7 @@ export class ProductsService {
     private readonly subproductModel: Model<Subproduct>,
     @InjectModel(Lock.name)
     private readonly lockModel: Model<Lock>,
-  ) { }
+  ) {}
 
   async createTestProd() {
     const prod = {
@@ -47,7 +47,7 @@ export class ProductsService {
         .populate({
           path: 'subproducts',
           options: { sort: { size: 1 } },
-          select: '_id sell_price size stock has_lock',
+          select: '_id sell_price size stock has_lock buy_price',
         })
         .select('_id name subproducts highlight image')
         .sort({ name: 1 })
@@ -205,9 +205,9 @@ export class ProductsService {
         })
         .select('_id name subproducts')
         .sort({ name: 1 })
-        .lean()
+        .lean(),
     ]);
 
-    return activeProds
+    return activeProds;
   }
 }

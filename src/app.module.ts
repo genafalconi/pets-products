@@ -19,7 +19,7 @@ import { SubproductsModule } from './subproducts/subproducts.module';
         retryAttempts: 2,
         retryDelay: 1000,
       }),
-      inject: [ConfigService]
+      inject: [ConfigService],
     }),
     ProductsModule,
     SubproductsModule,
