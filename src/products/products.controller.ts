@@ -18,7 +18,7 @@ export class ProductsController {
   constructor(
     @Inject(ProductsService)
     private readonly productsService: ProductsService,
-  ) {}
+  ) { }
 
   @Get('/active')
   async getActiveProducts(
@@ -48,5 +48,12 @@ export class ProductsController {
       input,
       parseInt(page),
     );
+  }
+
+  @Get('/search/movement')
+  async getNonPaginateProducts(
+    @Query('input') input: string,
+  ): Promise<any> {
+    return await this.productsService.getProductsMovementSearch(input);
   }
 }

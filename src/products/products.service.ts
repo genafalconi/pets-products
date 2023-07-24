@@ -17,7 +17,7 @@ export class ProductsService {
     private readonly subproductModel: Model<Subproduct>,
     @InjectModel(Lock.name)
     private readonly lockModel: Model<Lock>,
-  ) {}
+  ) { }
 
   async createTestProd() {
     const prod = {
@@ -65,7 +65,9 @@ export class ProductsService {
             .findOne({ subproduct: subprod._id })
             .lean()
             .exec();
-          subprod.stock -= subprodLocked.quantity;
+          if (subprodLocked) {
+            subprod.stock -= subprodLocked.quantity;
+          }
         }
       }
     }
@@ -190,5 +192,22 @@ export class ProductsService {
       { name: { $regex: input, $options: 'i' } },
       page,
     );
+  }
+
+  async getProductsMovementSearch(input: string) {
+    const [activeProds] = await Promise.all([
+      this.productModel
+        .find({ name: { $regex: input, $options: 'i' } })
+        .populate({
+          path: 'subproducts',
+          options: { sort: { size: 1 } },
+          select: '_id sell_price size stock',
+        })
+        .select('_id name subproducts')
+        .sort({ name: 1 })
+        .lean()
+    ]);
+
+    return activeProds
   }
 }
