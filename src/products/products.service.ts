@@ -17,7 +17,7 @@ export class ProductsService {
     private readonly subproductModel: Model<Subproduct>,
     @InjectModel(Lock.name)
     private readonly lockModel: Model<Lock>,
-  ) { }
+  ) {}
 
   async createTestProd() {
     const prod = {
@@ -82,9 +82,7 @@ export class ProductsService {
     };
   }
 
-  async getActiveProducts(
-    page = 1,
-  ): Promise<ProductPaginationDto> {
+  async getActiveProducts(page = 1): Promise<ProductPaginationDto> {
     return await this.getPaginatedProducts(null, page);
   }
 
@@ -183,7 +181,7 @@ export class ProductsService {
   }
 
   async getProductsByInputSearch(input?: string, page = 1, animal?: string) {
-    let param: any = {};
+    const param: any = {};
     if (input) {
       param.name = { $regex: input, $options: 'i' };
     }

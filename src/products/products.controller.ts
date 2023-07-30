@@ -42,12 +42,12 @@ export class ProductsController {
   async getSearchProducts(
     @Query('page') page: string,
     @Query('input') input?: string,
-    @Query('animal') animal?: string
+    @Query('animal') animal?: string,
   ): Promise<ProductPaginationDto> {
     return await this.productsService.getProductsByInputSearch(
       input,
       parseInt(page),
-      animal
+      animal,
     );
   }
 
