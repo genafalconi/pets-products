@@ -23,9 +23,8 @@ export class ProductsController {
   @Get('/active')
   async getActiveProducts(
     @Query('page') page: number,
-    @Query('animal') animal?: string,
   ): Promise<ProductPaginationDto> {
-    return await this.productsService.getActiveProducts(animal, page);
+    return await this.productsService.getActiveProducts(page);
   }
 
   @UseGuards(FirebaseAuthGuard)
@@ -42,11 +41,18 @@ export class ProductsController {
   @Get('/search')
   async getSearchProducts(
     @Query('page') page: string,
-    @Query('input') input: string,
+    @Query('input') input?: string,
+    @Query('animal') animal?: string,
   ): Promise<ProductPaginationDto> {
     return await this.productsService.getProductsByInputSearch(
       input,
       parseInt(page),
+      animal,
     );
+  }
+
+  @Get('/search/movement')
+  async getNonPaginateProducts(@Query('input') input: string): Promise<any> {
+    return await this.productsService.getProductsMovementSearch(input);
   }
 }

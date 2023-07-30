@@ -47,9 +47,9 @@ export class ProductsService {
         .populate({
           path: 'subproducts',
           options: { sort: { size: 1 } },
-          select: '_id sell_price size stock has_lock',
+          select: '_id sell_price size stock has_lock buy_price',
         })
-        .select('_id name subproducts highlight image')
+        .select('_id name subproducts highlight image animal')
         .sort({ name: 1 })
         .skip(skip)
         .limit(productsPerPage)
@@ -65,7 +65,9 @@ export class ProductsService {
             .findOne({ subproduct: subprod._id })
             .lean()
             .exec();
-          subprod.stock -= subprodLocked.quantity;
+          if (subprodLocked) {
+            subprod.stock -= subprodLocked.quantity;
+          }
         }
       }
     }
@@ -80,15 +82,8 @@ export class ProductsService {
     };
   }
 
-  async getActiveProducts(
-    animal?: string,
-    page = 1,
-  ): Promise<ProductPaginationDto> {
-    let params = null;
-    if (animal) {
-      params = { animal: animal };
-    }
-    return await this.getPaginatedProducts(params, page);
+  async getActiveProducts(page = 1): Promise<ProductPaginationDto> {
+    return await this.getPaginatedProducts(null, page);
   }
 
   async getSubProductsByProd(idProduct: string) {
@@ -185,10 +180,31 @@ export class ProductsService {
     // https://res.cloudinary.com/<cloud_name>/image/upload/h_150,w_100/olympic_flag
   }
 
-  async getProductsByInputSearch(input: string, page = 1) {
-    return await this.getPaginatedProducts(
-      { name: { $regex: input, $options: 'i' } },
-      page,
-    );
+  async getProductsByInputSearch(input?: string, page = 1, animal?: string) {
+    const param: any = {};
+    if (input) {
+      param.name = { $regex: input, $options: 'i' };
+    }
+    if (animal) {
+      param.animal = animal;
+    }
+    return await this.getPaginatedProducts(param, page);
+  }
+
+  async getProductsMovementSearch(input: string) {
+    const [activeProds] = await Promise.all([
+      this.productModel
+        .find({ name: { $regex: input, $options: 'i' } })
+        .populate({
+          path: 'subproducts',
+          options: { sort: { size: 1 } },
+          select: '_id sell_price size stock',
+        })
+        .select('_id name subproducts')
+        .sort({ name: 1 })
+        .lean(),
+    ]);
+
+    return activeProds;
   }
 }
