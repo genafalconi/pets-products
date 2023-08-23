@@ -55,4 +55,9 @@ export class ProductsController {
   async getNonPaginateProducts(@Query('input') input: string): Promise<any> {
     return await this.productsService.getProductsMovementSearch(input);
   }
+
+  @Get('/aca')
+  async productsdoc() {
+    return await this.productsService.createProds()
+  }
 }

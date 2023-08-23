@@ -17,7 +17,7 @@ export class ProductsService {
     private readonly subproductModel: Model<Subproduct>,
     @InjectModel(Lock.name)
     private readonly lockModel: Model<Lock>,
-  ) {}
+  ) { }
 
   async createTestProd() {
     const prod = {
@@ -206,5 +206,20 @@ export class ProductsService {
     ]);
 
     return activeProds;
+  }
+
+
+  async createProds() {
+    const prods = await this.productModel.find().select('_id')
+    for (let prod of prods) {
+      const subp = await this.subproductModel.find({ product: new Types.ObjectId(prod._id) }).select('_id')
+      for (let sub of subp) {
+        await this.productModel.findOneAndUpdate(
+          { _id: prod._id },
+          { $push: { subproducts: new Types.ObjectId(sub._id) } }
+        )
+      }
+    }
+    return 'termino'
   }
 }
