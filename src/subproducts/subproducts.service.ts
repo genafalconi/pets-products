@@ -12,7 +12,7 @@ export class SubproductsService {
     private readonly lockModel: Model<Lock>,
     @InjectModel(Subproduct.name)
     private readonly subproductModel: Model<Subproduct>,
-  ) {}
+  ) { }
 
   async lockSubprods(lockData: LockDto): Promise<Lock[]> {
     const locksSaved: Array<Lock> = [];
@@ -83,4 +83,16 @@ export class SubproductsService {
     Logger.log(locksDeleted, 'Deleted locks');
     return locksDeleted;
   }
+
+  async getHighlightedSubprods(): Promise<Subproduct[]> {
+    return await this.subproductModel
+      .find({ highlight: true, active: true })
+      .populate({
+        path: 'product',
+        model: 'Product',
+        select: '_id name image description'
+      })
+      .select('_id sell_price product size stock')
+  }
+
 }
