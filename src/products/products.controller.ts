@@ -12,6 +12,8 @@ import { FirebaseAuthGuard } from 'src/firebase/firebase.auth.guard';
 import { Product } from 'src/schemas/product.schema';
 import { ProductsService } from './products.service';
 import { ProductPaginationDto } from 'src/dto/productPagination.dto';
+import { LandingType } from 'src/dto/types.dto';
+import { Landing } from 'src/schemas/landing.schema';
 
 @Controller('products')
 export class ProductsController {
@@ -59,5 +61,10 @@ export class ProductsController {
   @Get('/aca')
   async productsdoc() {
     return await this.productsService.createProds()
+  }
+
+  @Get('/landing-images')
+  async getLandingImages(@Query('type') type?: LandingType): Promise<Landing[]> {
+    return await this.productsService.getLandingImages(type)
   }
 }

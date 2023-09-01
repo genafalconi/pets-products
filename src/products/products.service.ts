@@ -7,6 +7,8 @@ import { Subproduct } from '../schemas/subprod.schema';
 import { FilterDto } from 'src/dto/filter.dto';
 import { ProductPaginationDto } from 'src/dto/productPagination.dto';
 import { Lock } from 'src/schemas/lock.schema';
+import { LandingType } from 'src/dto/types.dto';
+import { Landing } from 'src/schemas/landing.schema';
 
 @Injectable()
 export class ProductsService {
@@ -17,6 +19,8 @@ export class ProductsService {
     private readonly subproductModel: Model<Subproduct>,
     @InjectModel(Lock.name)
     private readonly lockModel: Model<Lock>,
+    @InjectModel(Landing.name)
+    private readonly landingModel: Model<Landing>,
   ) { }
 
   async createTestProd() {
@@ -221,5 +225,10 @@ export class ProductsService {
       }
     }
     return 'termino'
+  }
+
+  async getLandingImages(type?: LandingType): Promise<Landing[]> {
+    const query = type && { type: type }
+    return await this.landingModel.find(query)
   }
 }

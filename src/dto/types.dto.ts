@@ -41,3 +41,16 @@ export class BrandDto {
   UNIK = 'UNIK';
   OPTIMUM = 'OPTIMUM';
 }
+
+export class LandingDto {
+  image: string
+  type: LandingType
+  active?: boolean
+  id?: string
+}
+
+export enum LandingType {
+  CAROUSEL = 'CAROUSEL',
+  INFO = 'INFO',
+  PROMO = 'PROMO'
+}
