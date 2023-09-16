@@ -19,6 +19,9 @@ export class Subproduct extends Document {
   @Prop({ required: false })
   sell_price: number;
 
+  @Prop({ required: true })
+  sale_price: number;
+
   @Prop({ required: false })
   size: number;
 

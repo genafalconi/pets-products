@@ -51,7 +51,7 @@ export class ProductsService {
         .populate({
           path: 'subproducts',
           options: { sort: { size: 1 } },
-          select: '_id sell_price size stock has_lock buy_price',
+          select: '_id sell_price size stock has_lock buy_price sale_price',
         })
         .select('_id name subproducts highlight image animal')
         .sort({ name: 1 })
@@ -202,7 +202,7 @@ export class ProductsService {
         .populate({
           path: 'subproducts',
           options: { sort: { size: 1 } },
-          select: '_id sell_price size stock',
+          select: '_id sell_price size stock sale_price',
         })
         .select('_id name subproducts')
         .sort({ name: 1 })
