@@ -9,6 +9,7 @@ import { ProductPaginationDto } from 'src/dto/productPagination.dto';
 import { Lock } from 'src/schemas/lock.schema';
 import { LandingType } from 'src/dto/types.dto';
 import { Landing } from 'src/schemas/landing.schema';
+import regexText from 'src/helpers/regexText';
 
 @Injectable()
 export class ProductsService {
@@ -187,7 +188,11 @@ export class ProductsService {
   async getProductsByInputSearch(input?: string, page = 1, animal?: string) {
     const param: any = {};
     if (input) {
-      param.name = { $regex: input, $options: 'i' };
+      const searchTerms = input.split(/\s+/).filter(Boolean);
+      const regexQueries = searchTerms.map((term) => ({
+        name: { $regex: new RegExp(regexText(term), 'i') },
+      }));
+      param.$and = regexQueries;
     }
     if (animal) {
       param.animal = animal;
