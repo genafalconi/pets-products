@@ -92,7 +92,7 @@ export class SubproductsService {
         model: 'Product',
         select: '_id name image description'
       })
-      .select('_id buy_price sell_price product size stock')
+      .select('_id buy_price sell_price product size stock sale_price')
   }
 
 }
