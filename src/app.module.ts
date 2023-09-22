@@ -17,7 +17,6 @@ import { SubproductsModule } from './subproducts/subproducts.module';
         useUnifiedTopology: true,
         maxPoolSize: 10,
         autoIndex: false,
-        poolSize: 5,
         serverSelectionTimeoutMS: 5000,
         socketTimeoutMS: 45000,
         keepAlive: true,
