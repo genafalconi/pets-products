@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { FilterDto } from 'src/dto/filter.dto';
 import { FirebaseAuthGuard } from 'src/firebase/firebase.auth.guard';
-import { Product } from 'src/schemas/product.schema';
 import { ProductsService } from './products.service';
 import { ProductPaginationDto } from 'src/dto/productPagination.dto';
 import { LandingType } from 'src/dto/types.dto';
@@ -20,14 +19,7 @@ export class ProductsController {
   constructor(
     @Inject(ProductsService)
     private readonly productsService: ProductsService,
-  ) {}
-
-  @Get('/active')
-  async getActiveProducts(
-    @Query('page') page: number,
-  ): Promise<ProductPaginationDto> {
-    return await this.productsService.getActiveProducts(page);
-  }
+  ) { }
 
   @UseGuards(FirebaseAuthGuard)
   @Post('/new')
@@ -35,22 +27,9 @@ export class ProductsController {
     return await this.productsService.createTestProd();
   }
 
-  @Get('/filter')
-  async getFilterProducts(@Body() filterData: FilterDto): Promise<Product[]> {
+  @Get('/')
+  async getFilterProducts(@Query() filterData: FilterDto): Promise<ProductPaginationDto> {
     return await this.productsService.getFilteredProducts(filterData);
-  }
-
-  @Get('/search')
-  async getSearchProducts(
-    @Query('page') page: string,
-    @Query('input') input?: string,
-    @Query('animal') animal?: string,
-  ): Promise<ProductPaginationDto> {
-    return await this.productsService.getProductsByInputSearch(
-      input,
-      parseInt(page),
-      animal,
-    );
   }
 
   @Get('/search/movement')

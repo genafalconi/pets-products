@@ -41,56 +41,6 @@ export class ProductsService {
     await this.subproductModel.updateMany({}, { $set: { stock: 100 } });
   }
 
-  async getPaginatedProducts(params: any, page = 1) {
-    const productsPerPage = 20;
-    const skip = (page - 1) * productsPerPage;
-    const query = { active: true, ...params };
-
-    const [activeProds, totalCount] = await Promise.all([
-      this.productModel
-        .find(query)
-        .populate({
-          path: 'subproducts',
-          options: { sort: { size: 1 } },
-          select: '_id sell_price size stock has_lock buy_price sale_price',
-        })
-        .select('_id name subproducts highlight image animal')
-        .sort({ name: 1 })
-        .skip(skip)
-        .limit(productsPerPage)
-        .lean()
-        .exec(),
-      this.productModel.countDocuments(query).exec(),
-    ]);
-
-    for (const prod of activeProds) {
-      for (const subprod of prod.subproducts) {
-        if (subprod.has_lock) {
-          const subprodLocked = await this.lockModel
-            .findOne({ subproduct: subprod._id })
-            .lean()
-            .exec();
-          if (subprodLocked) {
-            subprod.stock -= subprodLocked.quantity;
-          }
-        }
-      }
-    }
-
-    const totalPages = Math.ceil(totalCount / productsPerPage);
-
-    return {
-      subproducts: activeProds,
-      total_products: totalCount,
-      page: page,
-      total_pages: totalPages,
-    };
-  }
-
-  async getActiveProducts(page = 1): Promise<ProductPaginationDto> {
-    return await this.getPaginatedProducts(null, page);
-  }
-
   async getSubProductsByProd(idProduct: string) {
     const subprods = await this.subproductModel
       .find({ product: idProduct })
@@ -112,42 +62,88 @@ export class ProductsService {
     }
   }
 
-  async getFilteredProducts(filterData: FilterDto): Promise<Product[]> {
-    const filter = {
-      'subproducts.animal': filterData.animal,
-      'subproducts.animal_age': filterData.age,
-      'subproducts.category': filterData.category,
-      'subproducts.active': true,
-    };
+  parseFilterData(queryParams: any): FilterDto {
+    const page = parseInt(queryParams.page) || 1;
+    const input = queryParams.input || '';
 
-    if (filterData.size === 'MEDIUM' || filterData.size === 'LARGE') {
-      filter['subproducts.animal_size'] = {
-        $in: [filterData.size, 'MEDIUM AND LARGE'],
-      };
-    } else {
-      filter['subproducts.animal_size'] = filterData.size;
+    const age = Array.isArray(queryParams.age) ? queryParams.age : (queryParams.age ? queryParams.age.split(',') : []);
+    const size = Array.isArray(queryParams.size) ? queryParams.size : (queryParams.size ? queryParams.size.split(',') : []);
+    const animal = Array.isArray(queryParams.animal) ? queryParams.animal : (queryParams.animal ? queryParams.animal.split(',') : []);
+
+    const price = parseInt(queryParams.price) || 0;
+
+    return { page, input, age, size, animal, price };
+  }
+
+  async getFilteredProducts(filterData: FilterDto): Promise<ProductPaginationDto> {
+    const { animal, size, age, price, input, page } = this.parseFilterData(filterData);
+
+    const productsPerPage = 20;
+    const skip = (page - 1) * productsPerPage;
+    const conditions: any[] = [{ active: true }];
+
+    if (input && input.length > 0) {
+      const searchTerms = input.split(/\s+/).filter(Boolean);
+      const regexQueries = searchTerms.map((term) => ({
+        name: { $regex: new RegExp(regexText(term), 'i') },
+      }));
+      conditions.push({ $or: regexQueries }); // Use $or for searching multiple terms.
     }
-    console.log(filter);
-    const prods: Product[] = await this.productModel
-      .aggregate([
-        {
-          $lookup: {
-            from: 'subproducts',
-            localField: 'subproducts',
-            foreignField: '_id',
-            as: 'subproducts',
-          },
-        },
-        {
-          $match: filter,
-        },
-        {
-          $sort: { brand: 1 },
-        },
-      ])
-      .exec();
+    if (animal && animal.length > 0) {
+      conditions.push({ animal: { $in: animal } });
+    }
+    if (size && size.length > 0) {
+      conditions.push({ animal_size: { $in: size } });
+    }
+    if (age && age.length > 0) {
+      conditions.push({ animal_age: { $in: age } });
+    }
 
-    return prods;
+    const [filterResults, totalCount] = await Promise.all([
+      this.productModel
+        .find({ $and: conditions })
+        .populate('subproducts')
+        .sort({ name: 1 })
+        .skip(skip)
+        .limit(productsPerPage)
+        .exec(),
+      this.productModel.countDocuments(conditions.length > 0 ? { $and: conditions } : {}).exec(),
+    ]);
+
+    const updatedFilterResults = await this.processFilterResults(filterResults, price, this.lockModel);
+
+    const totalPages = Math.ceil(totalCount / productsPerPage);
+
+    return {
+      subproducts: updatedFilterResults,
+      total_products: totalCount,
+      page: page,
+      total_pages: totalPages,
+    };
+  }
+
+  async processFilterResults(filterResults: Product[], price: number, lockModel: Model<Lock>) {
+    const updatedFilterResults = await Promise.all(filterResults.map(async (product) => {
+      if (price) {
+        product.subproducts = product.subproducts.filter((subprod) => subprod.sale_price <= price);
+      }
+
+      for (const subprod of product.subproducts) {
+        if (subprod.has_lock) {
+          const subprodLocked = await lockModel
+            .findOne({ subproduct: subprod._id })
+            .lean()
+            .exec();
+          if (subprodLocked) {
+            subprod.stock -= subprodLocked.quantity;
+          }
+        }
+      }
+
+      return product;
+    }));
+
+    return updatedFilterResults.filter((prod) => prod.subproducts.length > 0);
   }
 
   async uploadCloudinaryImage(
@@ -183,21 +179,6 @@ export class ProductsService {
     // The output url
     console.log(url);
     // https://res.cloudinary.com/<cloud_name>/image/upload/h_150,w_100/olympic_flag
-  }
-
-  async getProductsByInputSearch(input?: string, page = 1, animal?: string) {
-    const param: any = {};
-    if (input) {
-      const searchTerms = input.split(/\s+/).filter(Boolean);
-      const regexQueries = searchTerms.map((term) => ({
-        name: { $regex: new RegExp(regexText(term), 'i') },
-      }));
-      param.$and = regexQueries;
-    }
-    if (animal) {
-      param.animal = animal;
-    }
-    return await this.getPaginatedProducts(param, page);
   }
 
   async getProductsMovementSearch(input: string) {
