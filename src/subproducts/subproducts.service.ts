@@ -30,7 +30,7 @@ export class SubproductsService {
         if (!existingLock) {
           const lockToSave = new this.lockModel({
             _id: new Types.ObjectId(),
-            user: lockData.user,
+            user: new Types.ObjectId(lockData.user),
             subproduct: new Types.ObjectId(subprod.subprod),
             quantity: subprod.quantity,
           });
