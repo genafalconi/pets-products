@@ -125,7 +125,7 @@ export class ProductsService {
   async processFilterResults(filterResults: Product[], price: number, lockModel: Model<Lock>) {
     const updatedFilterResults = await Promise.all(filterResults.map(async (product) => {
       if (price) {
-        product.subproducts = product.subproducts.filter((subprod) => subprod.sale_price <= price);
+        product.subproducts = product.subproducts.filter((subprod) => subprod.sell_price <= price);
       }
 
       for (const subprod of product.subproducts) {
