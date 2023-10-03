@@ -64,7 +64,7 @@ export class ProductsService {
 
   parseFilterData(queryParams: any): FilterDto {
     const page = parseInt(queryParams.page) || 1;
-    const input = queryParams.input || '';
+    const input = decodeURIComponent(queryParams.input || '');
 
     const age = Array.isArray(queryParams.age) ? queryParams.age : (queryParams.age ? queryParams.age.split(',') : []);
     const size = Array.isArray(queryParams.size) ? queryParams.size : (queryParams.size ? queryParams.size.split(',') : []);
@@ -87,7 +87,7 @@ export class ProductsService {
       const regexQueries = searchTerms.map((term) => ({
         name: { $regex: new RegExp(regexText(term), 'i') },
       }));
-      conditions.push({ $or: regexQueries }); // Use $or for searching multiple terms.
+      conditions.push({ $and: regexQueries });
     }
     if (animal && animal.length > 0) {
       conditions.push({ animal: { $in: animal } });
